@@ -9,7 +9,7 @@ import {
 import { User } from "../../modules/users/users.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { authUser } from "../../middlewares/auth.js"
+import { authUser } from "../../middlewares/auth.js";
 
 export const router = Router();
 
@@ -56,7 +56,6 @@ router.post("/auth/cookie/login", async (req, res, next) => {
         message: "Invalid password...",
       });
     }
-
     // Generate JSON Web Token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",

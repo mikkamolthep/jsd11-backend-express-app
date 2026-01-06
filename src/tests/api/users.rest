@@ -15,3 +15,17 @@ Content-Type: application/json
 ### DELETE request to delete a user
 DELETE http://localhost:3000/api/v1/users/4
 
+### Post Login a user
+POST http://localhost:3000/api/v2/users/auth/cookie/login
+Content-Type:  application/json
+
+{
+    "email": "homes@example.com",
+    "password": "12345678"
+}
+
+### Post Logout a user
+POST http://localhost:3000/api/v2/users/auth/cookie/logout
+
+### GET Check user authentication
+GET http://localhost:3000/api/v2/users/auth/cookie/me

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  askUsers2,
   createUser2,
   deleteUser2,
   getUser2,
@@ -14,6 +15,36 @@ import { authUser } from "../../middlewares/auth.js";
 export const router = Router();
 
 router.get("/", getUsers2);
+
+// Check user authentication (check if user has valid token)
+router.get("/auth/cookie/me", authUser, async (req, res, next) => {
+  try {
+    const userId = req.user.user._id;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(401).json({
+        error: true,
+        message: "Unauthenticated",
+      });
+    }
+
+    res.status(200).json({
+      error: false,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post("/auth/ai/ask", authUser, askUsers2)
 
 router.get("/:id", getUser2);
 
@@ -104,30 +135,4 @@ router.post("/auth/cookie/logout", (req, res) => {
   });
 });
 
-// Check user authentication (check if user has valid token)
-router.get("/auth/cookie/me", authUser, async (req, res, next) => {
-  try {
-    const userId = req.user.user._id;
 
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(401).json({
-        error: true,
-        message: "Unauthenticated",
-      });
-    }
-
-    res.status(200).json({
-      error: false,
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});

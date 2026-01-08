@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
       vector: { type: [Number], select: false },
       attempts: { type: Number, default: 0 },
       lastAttemptAt: { type: Date, default: null },
-      updateAt: { type: Date, default: null },
+      updatedAt: { type: Date, default: null },
       lastError: { type: String, default: null },
     },
   },

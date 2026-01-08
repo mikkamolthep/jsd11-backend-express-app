@@ -1,8 +1,8 @@
+import { User } from "./users.model.js";
 import {
   embedText,
   GEMINI_EMBEDDING_DIMS,
 } from "../../services/gemini.client.js";
-import { User } from "./users.model.js";
 
 const buildUserEmbeddingText = (userDoc) => {
   const username = userDoc?.username ? String(userDoc.username).trim() : "";
@@ -32,7 +32,7 @@ export const embedUserById = async (userId) => {
         "embedding.status": "PROCESSING",
         "embedding.lastAttemptAt": new Date(),
       },
-      $inc: { "embedding.attempt": 1 },
+      $inc: { "embedding.attempts": 1 },
     },
     { new: false }
   );
@@ -50,10 +50,10 @@ export const embedUserById = async (userId) => {
     }
 
     const text = buildUserEmbeddingText(user);
-    const vector = await embedText({text});
+    const vector = await embedText({ text });
 
     await User.findByIdAndUpdate(
-      userId, 
+      userId,
       {
         $set: {
           "embedding.status": "READY",
@@ -61,14 +61,14 @@ export const embedUserById = async (userId) => {
           "embedding.dims": GEMINI_EMBEDDING_DIMS,
           "embedding.updateAt": new Date(),
           "embedding.lastError": null,
+        },
       },
-    },
-    { new : false }
-  );
+      { new: false }
+    );
 
-  return { ok: true };
+    return { ok: true };
   } catch (error) {
-    const message = String(error?.message || "Embedding failed")
+    const message = String(error?.message || "Embedding failed");
 
     await User.findByIdAndUpdate(
       userId,
@@ -78,15 +78,15 @@ export const embedUserById = async (userId) => {
           "embedding.lastError": message,
         },
       },
-      { new: false}
+      { new: false }
     );
     return { ok: false, error: message };
   }
 };
 
 export const queueEmbedUserById = (userId) => {
-  setImmediate(()=>{
-    embedUserById(userId).catch((error )=>{
+  setImmediate(() => {
+    embedUserById(userId).catch((error) => {
       console.error("Async user embedding failed", {
         userId,
         message: error?.message,

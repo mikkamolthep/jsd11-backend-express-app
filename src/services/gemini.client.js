@@ -8,9 +8,9 @@ const EXPECTED_EMBEDDING_DIMS = 3072;
 export const embedText = async ({
   apiKey = process.env.GEMINI_API_KEY,
   text,
-  baseUrl = process.env.GEMINI_API_BASE_URL || DEFAULT_BASE_URL,
+  baseURL = process.env.GEMINI_API_BASE_URL || DEFAULT_BASE_URL,
   model = process.env.GEMINI_EMBEDDING_MODEL || EMBEDDING_MODEL,
-  timeoutMs = Number(process.env.GEMINI_HTTP_TIMEOUT_MS || 15000), // 15 seconds
+  timeoutMs = +process.env.GEMINI_HTTP_TIMEOUT_MS || 15 * 1000, // 15 seconds
 } = {}) => {
   const trimmed = String(text || "").trim();
 
@@ -28,12 +28,12 @@ export const embedText = async ({
     throw error;
   }
 
-  const url = `${baseUrl}/v1beta/models/${encodeURIComponent(
+  const URL = `${baseURL}/v1beta/models/${encodeURIComponent(
     model
   )}:embedContent?key=${encodeURIComponent(apiKey)}`;
 
   const { data } = await axios.post(
-    url,
+    URL,
     {
       content: {
         parts: [{ text: trimmed }],
@@ -78,10 +78,10 @@ export const GEMINI_EMBEDDING_DIMS = EXPECTED_EMBEDDING_DIMS;
 export const generateText = async ({
   apiKey = process.env.GEMINI_API_KEY,
   prompt,
-  baseUrl = process.env.GEMINI_API_BASE_URL || DEFAULT_BASE_URL,
+  baseURL = process.env.GEMINI_API_BASE_URL || DEFAULT_BASE_URL,
   model = process.env.GEMINI_GENERATION_MODEL || GENERATION_MODEL,
-  timeoutMs = Number(process.env.GEMINI_HTTP_TIMEOUT_MS || 20000), // 20 seconds
-  temperature = Number(process.env.GEMINI_TEMPERATURE || 0.2),
+  timeoutMs = +process.env.GEMINI_HTTP_TIMEOUT_MS || 20 * 1000, // 20 seconds
+  temperature = +process.env.GEMINI_TEMPERATURE || 0.2,
 } = {}) => {
   const trimmed = String(prompt || "").trim();
 
@@ -99,12 +99,12 @@ export const generateText = async ({
     throw error;
   }
 
-  const url = `${baseUrl}/v1beta/models/${encodeURIComponent(
+  const URL = `${baseURL}/v1beta/models/${encodeURIComponent(
     model
   )}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
   const { data } = await axios.post(
-    url,
+    URL,
     {
       contents: [
         {
@@ -127,7 +127,7 @@ export const generateText = async ({
   const parts = data?.candidates?.[0]?.content?.parts;
   const text = Array.isArray(parts)
     ? parts
-        .map((p) => p?.text)
+        .map((part) => part?.text)
         .filter(Boolean)
         .join("")
     : null;

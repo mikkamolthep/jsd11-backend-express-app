@@ -44,11 +44,14 @@ router.get("/auth/cookie/me", authUser, async (req, res, next) => {
   }
 });
 
+
+// Gemini AI route
 router.post("/auth/ai/ask", authUser, askUsers2)
 
 router.get("/:id", getUser2);
 
-router.post("/", authUser, createUser2);
+// Create new user (remove authUser middleware first)
+router.post("/", createUser2); // , authUser
 
 router.delete("/:id", authUser, deleteUser2);
 

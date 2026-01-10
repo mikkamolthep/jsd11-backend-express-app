@@ -6,8 +6,8 @@ POST http://localhost:3000/api/v2/users
 Content-Type: application/json
 
 {
-    "username": "ai8",
-    "email": "ai8@example.com",
+    "username": "ai15",
+    "email": "ai15@example.com",
     "password": "12345678",
     "role": "admin"
 }
@@ -31,7 +31,7 @@ POST http://localhost:3000/api/v2/users/auth/cookie/logout
 GET http://localhost:3000/api/v2/users/auth/cookie/me
 
 ### Ask AI
-POST  http://localhost:3000/api/v2/users/auth/ai/ask
+POST http://localhost:3000/api/v2/users/auth/ai/ask
 Content-Type: application/json
 
 {

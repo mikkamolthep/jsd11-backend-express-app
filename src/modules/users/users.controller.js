@@ -115,6 +115,7 @@ export const createUser2 = async (req, res, next) => {
     const safe = doc.toObject();
     delete safe.password;
 
+    // Embedding
     queueEmbedUserById(doc._id);
 
     return res.status(201).json({
@@ -164,14 +165,17 @@ export const updateUser2 = async (req, res, next) => {
   }
 };
 
-// ✅ route handler: ask about users in the database (MongoDB vector/semantic search -> Gemini generate response)
+// ✅ route handler: Gemini AI ask about users
 export const askUsers2 = async (req, res, next) => {
-  const { question, topK } = req.body || {};
+  const { question, topK = 5 } = req.body;
 
-  const trimmed = String(question || "").trim();
+  if (!question) {
+    return res.status(400).json({ error: "question is required" });
+  }
 
+  const trimmed = String(question).trim();
   if (!trimmed) {
-    const error = new Error("question is required");
+    const error = new Error("Question is required.");
     error.name = "ValidationError";
     error.status = 400;
     return next(error);
@@ -181,11 +185,8 @@ export const askUsers2 = async (req, res, next) => {
   const limit = Math.min(Math.max(parsedTopK, 1), 20);
 
   try {
-    // we will create embedText() later
     const queryVector = await embedText({ text: trimmed });
-
     const indexName = "users_embedding_vector_index";
-
     const numCandidates = Math.max(50, limit * 10);
 
     const sources = await User.aggregate([
@@ -210,20 +211,13 @@ export const askUsers2 = async (req, res, next) => {
       },
     ]);
 
-    const contextLines = sources.map((s, idx) => {
-      const id = s?._id ? String(s._id) : "";
-      const username = s?.username ? String(s.username) : "";
-      const email = s?.email ? String(s.email) : "";
-      const role = s?.role ? String(s.role) : "";
-      const score = typeof s?.score === "number" ? s.score.toFixed(4) : "";
-      return `Source ${
-        idx + 1
-      }: {id: ${id}, username: ${username}, email: ${email}, role: ${role}, score: ${score}}`;
-    });
+    const contextLines = sources.map((source, index) => {
+      const { _id: id, username, email, role, score } = source;
 
-    // Source 1 {id: 123, username: neeti, email: neeti@example.com}
-    // Source 2 {id: 124, username: neeti2, email: neeti2@example.com}
-    // Source 3 {id: 125, username: neeti3, email: neeti3@example.com}
+      return `Source ${
+        index + 1
+      }: {id: ${id}, username: ${username}, email: ${email}, role: ${role}, score: ${score}} `;
+    });
 
     const prompt = [
       "SYSTEM RULES:",
@@ -243,16 +237,13 @@ export const askUsers2 = async (req, res, next) => {
     let answer = null;
 
     try {
-      // we will create generateText() later
       answer = await generateText({ prompt });
     } catch (genError) {
-      console.error("Gemini generation failed", {
-        message: genError?.message,
-      });
+      console.error(`Gemini generation failed: ${genError}`);
     }
 
     return res.status(200).json({
-      error: false,
+      success: true,
       data: {
         question: trimmed,
         topK: limit,

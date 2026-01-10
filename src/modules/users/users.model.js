@@ -15,7 +15,10 @@ const userSchema = new mongoose.Schema(
         enum: ["PENDING", "PROCESSING", "READY", "FAILED"],
         default: "PENDING",
       },
-      dims: { type: Number, default: 3072 },
+      dims: {
+        type: Number,
+        default: 3072,
+      },
       vector: { type: [Number], select: false },
       attempts: { type: Number, default: 0 },
       lastAttemptAt: { type: Date, default: null },

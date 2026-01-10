@@ -1,25 +1,25 @@
-import { User } from "./users.model.js";
 import {
   embedText,
   GEMINI_EMBEDDING_DIMS,
 } from "../../services/gemini.client.js";
+import { User } from "./users.model.js";
 
 const buildUserEmbeddingText = (userDoc) => {
-  const username = userDoc?.username ? String(userDoc.username).trim() : "";
-  const email = userDoc?.email ? String(userDoc.email).trim() : "";
-  const role = userDoc?.role ? String(userDoc.role).trim() : "user";
+  const username = userDoc?.username?.toString().trim() ?? "";
+  const email = userDoc?.email?.toString().trim() ?? "";
+  const role = userDoc?.role?.toString().trim() ?? "";
 
   return [
-    "User profile:",
+    `User profile:`,
     `Username: ${username}`,
     `Email: ${email}`,
     `Role: ${role}`,
   ].join("\n");
 };
 
-export const embedUserById = async (userId) => {
+const embedUserById = async (userId) => {
   if (!userId) {
-    const error = new Error("userId is required");
+    const error = new Error("userId is required.");
     error.name = "ValidationError";
     error.status = 400;
     throw error;
@@ -42,8 +42,8 @@ export const embedUserById = async (userId) => {
       "username email role embedding.status"
     );
 
-    if (!user) {
-      const error = new Error("User not found");
+    if (!userId) {
+      const error = new Error("User not found.");
       error.name = "NotFoundError";
       error.status = 404;
       throw error;
@@ -59,7 +59,7 @@ export const embedUserById = async (userId) => {
           "embedding.status": "READY",
           "embedding.vector": vector,
           "embedding.dims": GEMINI_EMBEDDING_DIMS,
-          "embedding.updateAt": new Date(),
+          "embedding.updatedAt": new Date(),
           "embedding.lastError": null,
         },
       },
@@ -68,7 +68,7 @@ export const embedUserById = async (userId) => {
 
     return { ok: true };
   } catch (error) {
-    const message = String(error?.message || "Embedding failed");
+    const message = error?.message ?? "Embedding failed";
 
     await User.findByIdAndUpdate(
       userId,
@@ -78,19 +78,37 @@ export const embedUserById = async (userId) => {
           "embedding.lastError": message,
         },
       },
-      { new: false }
+      {
+        new: false,
+      }
     );
-    return { ok: false, error: message };
+
+    return {
+      ok: false,
+      error: message,
+    };
   }
 };
 
 export const queueEmbedUserById = (userId) => {
-  setImmediate(() => {
-    embedUserById(userId).catch((error) => {
-      console.error("Async user embedding failed", {
-        userId,
-        message: error?.message,
-      });
-    });
+  setImmediate(async () => {
+    try {
+      await embedUserById(userId);
+    } catch (error) {
+      console.error("Async user embedding failed.", { userId, error });
+    }
   });
 };
+
+/* 
+const queueEmbedUserById = (userId) => {
+  setImmediate(() => {
+    embedUserById(userId).catch((error) =>
+      console.error("Async user embedding failed.", {
+        userId,
+        message: error?.message,
+      })
+    );
+  });
+}; 
+*/

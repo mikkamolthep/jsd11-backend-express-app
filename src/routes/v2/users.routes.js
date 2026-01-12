@@ -44,14 +44,11 @@ router.get("/auth/cookie/me", authUser, async (req, res, next) => {
   }
 });
 
-
-// Gemini AI route
-router.post("/auth/ai/ask", authUser, askUsers2)
+router.post("/auth/ai/ask", authUser, askUsers2);
 
 router.get("/:id", getUser2);
 
-// Create new user (remove authUser middleware first)
-router.post("/", createUser2); // , authUser
+router.post("/", authUser, createUser2);
 
 router.delete("/:id", authUser, deleteUser2);
 
@@ -137,5 +134,3 @@ router.post("/auth/cookie/logout", (req, res) => {
     message: "Logged out successfully",
   });
 });
-
-
